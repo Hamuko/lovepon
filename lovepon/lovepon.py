@@ -1,5 +1,5 @@
 import click
-from ffmpeg import FFmpeg
+from .ffmpeg import FFmpeg
 
 
 def parse_bandwidth(bandwidth):
@@ -48,8 +48,8 @@ def parse_filesize(filesize):
 @click.option('--verbose', is_flag=True,
               help='Turn on ffmpeg output.')
 @click.argument('file', required=True, nargs=1, type=click.Path(exists=True))
-def lovepon(bandwidth, end, resolution, sound, start,
-            subs, target_size, verbose, file):
+def cli(bandwidth, end, resolution, sound, start,
+        subs, target_size, verbose, file):
     """Command-line wrapper for ffmpeg designed to ease converting video files
     to WebM files.
     """
@@ -67,4 +67,4 @@ def lovepon(bandwidth, end, resolution, sound, start,
     conversion.encode()
 
 if __name__ == '__main__':
-    lovepon()
+    cli()
