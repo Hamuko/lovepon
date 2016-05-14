@@ -18,7 +18,6 @@ def get_setup_version():
     """Return a version string that can be used with the setup method. Includes
     additional commits since the last tagged commit.
     """
-    return '0.1'
     if os.path.isdir('.git'):
         process = subprocess.Popen(COMMAND_DESCRIBE_VERSION,
                                    **SUBPROCESS_KWARGS)
