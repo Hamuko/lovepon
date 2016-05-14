@@ -4,7 +4,7 @@ Perfectly executed WebMs.
 
 ## Requirements
 
-lovepon most likely requires Python 3, since I have not bothered to test it with Python 2. Also, as a wrapper for [ffmpeg](https://ffmpeg.org/), it does require ffmpeg and prefarably to be built with the libraries that make it possible to encode VP8 video and AAC audio. Burning subtitles onto the videos requires ffmpeg support for subtitle rendering, like building ffmpeg against [libass](https://github.com/libass/libass).
+lovepon most likely requires Python 3, since I have not bothered to test it with Python 2. Also, as a wrapper for [ffmpeg](https://ffmpeg.org/), it does require ffmpeg and prefarably to be built with the libraries that make it possible to encode VP8 video and Vorbis audio. Burning subtitles onto the videos requires ffmpeg support for subtitle rendering, like building ffmpeg against [libass](https://github.com/libass/libass).
 
 ## Installation
 
