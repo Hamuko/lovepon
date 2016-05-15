@@ -33,6 +33,8 @@ def parse_filesize(filesize):
 @click.command()
 @click.option('--bandwidth', '-b',
               help='Manually set the used bandwidth, e.g. 5M.')
+@click.option('--duration',
+              help='Duration for the output video, e.g. 30.000')
 @click.option('--end', '-e',
               help='End time for the encode, e.g. 01:12:34.555.')
 @click.option('--resolution', nargs=2, type=int,
@@ -48,22 +50,26 @@ def parse_filesize(filesize):
 @click.option('--verbose', is_flag=True,
               help='Turn on ffmpeg output.')
 @click.argument('file', required=True, nargs=1, type=click.Path(exists=True))
-def cli(bandwidth, end, resolution, sound, start,
-        subs, target_size, verbose, file):
+def cli(bandwidth, duration, end, resolution, sound,
+        start, subs, target_size, verbose, file):
     """Command-line wrapper for ffmpeg designed to ease converting video files
     to WebM files.
     """
     conversion = FFmpeg(file)
+    conversion.start = start
+    conversion.end = end
+    if duration:
+        conversion.duration = duration
+
     if bandwidth:
         conversion.bandwidth = parse_bandwidth(bandwidth)
-    conversion.end = end
+    if target_size:
+        conversion.target_filesize = parse_filesize(target_size)
+
     conversion.quiet = not verbose
     conversion.resolution = resolution
     conversion.sound = sound
-    conversion.start = start
     conversion.subtitles = subs
-    if target_size:
-        conversion.target_filesize = parse_filesize(target_size)
     conversion.encode()
 
 if __name__ == '__main__':

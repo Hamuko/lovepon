@@ -1,5 +1,6 @@
 from math import fabs, ceil
 from shlex import quote
+from datetime import timedelta
 import os
 import re
 import shutil
@@ -13,7 +14,7 @@ class FFmpeg(object):
     generate ffmpeg arguments to run and matches the output video to specified
     parameters.
     """
-    track_re = re.compile(r'mkvmerge & mkvextract: ([0-9]*)')
+    duration_re = re.compile(r'Duration: ([0-9:\.]*),')
 
     def __init__(self, file):
         self.file = file
@@ -23,7 +24,7 @@ class FFmpeg(object):
         self._temp_dir = tempfile.TemporaryDirectory()
         self._subs_extracted = False
 
-        self.bandwidth = 1
+        self.bandwidth = None
         self.end = None
         self.quiet = True
         self.resolution = ()
@@ -58,6 +59,39 @@ class FFmpeg(object):
         arguments += ['output.webm']
         return arguments
 
+    def default_bitrate(self):
+        """Calculates a bitrate to start the encoding process based on the
+        target filesize and the length of the output video. The following
+        formula is used to calculate the bitrate (Mb/s):
+        target size (kB) / video duration (s) / 1024^2 * 8
+        """
+        seconds = self.duration.total_seconds()
+        return self.target_filesize / seconds / 1048576 * 8
+
+    @property
+    def duration(self):
+        """Return the duration as a timedelta object."""
+        if self.start:
+            start = self.string_to_timedelta(self.start)
+        else:
+            start = timedelta(0)
+        if self.end:
+            end = self.string_to_timedelta(self.end)
+        else:
+            end = self.string_to_timedelta(self.video_duration)
+        return end - start
+
+    @duration.setter
+    def duration(self, value):
+        """Set the end point for the video based on the start time and duration.
+        """
+        if self.start:
+            start = self.string_to_timedelta(self.start)
+        else:
+            start = timedelta(0)
+        duration = self.string_to_timedelta(value)
+        self.end = self.timedelta_to_string(start + duration)
+
     def encode(self):
         """Performs a two-pass encode. If the class has a specified target
         filesize, performs the encode until either the target filesize has
@@ -69,6 +103,8 @@ class FFmpeg(object):
         }
         old_filesize = 0
         temporary_file = os.path.join(self._temp_dir.name, 'output.webm')
+        if not self.bandwidth:
+            self.bandwidth = self.default_bitrate()
         while True:
             click.echo("Encoding video at {}M."
                        .format(ceil(self.bandwidth * 100) / 100))
@@ -95,3 +131,43 @@ class FFmpeg(object):
             else:
                 break
         shutil.move(temporary_file, self.out_filename)
+
+    def string_to_timedelta(self, time):
+        """Converts a timestamp used by FFmpeg to a Python timedelta object."""
+        parts = time.split(':')
+        try:
+            seconds = int(parts[-1].split('.')[0])
+        except (IndexError, ValueError):
+            seconds, milliseconds = 0, 0
+        try:
+            milliseconds = int(parts[-1].split('.')[1])
+        except (IndexError, ValueError):
+            milliseconds = 0
+        try:
+            minutes = int(parts[-2])
+        except (IndexError, ValueError):
+            minutes = 0
+        try:
+            hours = int(parts[-3])
+        except (IndexError, ValueError):
+            hours = 0
+        return timedelta(hours=hours, minutes=minutes,
+                         seconds=seconds, milliseconds=milliseconds)
+
+    def timedelta_to_string(self, delta):
+        """Converts a timedelta object to a FFmpeg compatible string."""
+        hours = delta.seconds // 3600
+        minutes = delta.seconds % 3600 // 60
+        seconds = delta.seconds % 60
+        milliseconds = delta.microseconds // 1000
+        return '{}:{}:{}.{}'.format(hours, minutes, seconds, milliseconds)
+
+    @property
+    def video_duration(self):
+        args = ['ffmpeg', '-i', self.file]
+        process = subprocess.Popen(args, stderr=subprocess.PIPE)
+        process.wait()
+        for line in process.stderr:
+            linestr = str(line)
+            if ' Duration: ' in linestr:
+                return re.search(FFmpeg.duration_re, linestr).group(1)
