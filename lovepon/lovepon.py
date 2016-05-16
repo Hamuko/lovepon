@@ -49,7 +49,8 @@ def parse_filesize(filesize):
               help='Target filesize for the encode.')
 @click.option('--verbose', is_flag=True,
               help='Turn on ffmpeg output.')
-@click.argument('file', required=True, nargs=1, type=click.Path(exists=True))
+@click.argument('file', required=True, nargs=1,
+                type=click.Path(exists=True, resolve_path=True))
 def cli(bandwidth, duration, end, resolution, sound,
         start, subs, target_size, verbose, file):
     """Command-line wrapper for ffmpeg designed to ease converting video files
