@@ -47,12 +47,14 @@ def parse_filesize(filesize):
               help='Output video with subtitles.')
 @click.option('--target-size', '-t',
               help='Target filesize for the encode.')
+@click.option('--title',
+              help='Add a title to file metadata.')
 @click.option('--verbose', is_flag=True,
               help='Turn on ffmpeg output.')
 @click.argument('file', required=True, nargs=1,
                 type=click.Path(exists=True, resolve_path=True))
 def cli(bandwidth, duration, end, resolution, sound,
-        start, subs, target_size, verbose, file):
+        start, subs, target_size, title, verbose, file):
     """Command-line wrapper for ffmpeg designed to ease converting video files
     to WebM files.
     """
@@ -71,6 +73,7 @@ def cli(bandwidth, duration, end, resolution, sound,
     conversion.resolution = resolution
     conversion.sound = sound
     conversion.subtitles = subs
+    conversion.title = title
     conversion.encode()
 
 if __name__ == '__main__':

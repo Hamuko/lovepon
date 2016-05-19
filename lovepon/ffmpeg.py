@@ -32,11 +32,14 @@ class FFmpeg(object):
         self.start = None
         self.subtitles = False
         self.target_filesize = None
+        self.title = None
 
     def arguments(self, encode_pass=1):
         """Returns a list of ffmpeg arguments based on the set instance variables.
         """
         arguments = ['ffmpeg', '-y', '-i', self.file]
+        if self.title:
+            arguments += ['-metadata', 'title={}'.format(self.title)]
         if self.subtitles:
             arguments += ['-copyts',
                           '-vf', 'subtitles={},setpts=PTS-STARTPTS'
