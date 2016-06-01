@@ -104,6 +104,7 @@ class FFmpeg(object):
             'cwd': self._temp_dir.name,
             'stderr': subprocess.DEVNULL if self.quiet else None
         }
+        old_bitrate = 0
         old_filesize = 0
         temporary_file = os.path.join(self._temp_dir.name, 'output.webm')
         if not self.bandwidth:
@@ -121,18 +122,27 @@ class FFmpeg(object):
             filesize = os.stat(temporary_file).st_size
             click.echo("Encoded video is {} kB."
                        .format(ceil(filesize / 1024)))
-            if self.target_filesize:
-                if fabs(filesize - old_filesize) < 8 * 1024:
-                    click.echo('Bitrate maxed. Stopping.')
-                    break
-                else:
-                    old_filesize = filesize
-                if fabs(self.target_filesize - filesize) < 10240:
-                    break
-                else:
-                    self.bandwidth *= self.target_filesize / filesize
-            else:
+
+            if not self.target_filesize:
+                # Stop encoding: bitrate mode used.
                 break
+            if fabs(self.target_filesize - filesize) < 10240:
+                # Stop encoding: File within 10 kB.
+                break
+            if fabs(filesize - old_filesize) < 8 * 1024:
+                click.echo('Bitrate maxed. Stopping.')
+                break
+            if old_bitrate and old_filesize:
+                delta_filesize = filesize - old_filesize
+                delta_bitrate = self.bandwidth - old_bitrate
+                d = delta_filesize / delta_bitrate
+                add_bitrate = -3 * pow(min(d / 300000, 1), 0.25) + 3
+            else:
+                add_bitrate = 0
+
+            old_bitrate = self.bandwidth
+            old_filesize = filesize
+            self.bandwidth *= self.target_filesize / filesize + add_bitrate
         shutil.move(temporary_file, self.out_filename)
 
     def string_to_timedelta(self, time):
