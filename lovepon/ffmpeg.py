@@ -25,6 +25,7 @@ class FFmpeg(object):
         self._subs_extracted = False
 
         self.bandwidth = None
+        self.coordinates = None
         self.end = None
         self.quiet = True
         self.resolution = ()
@@ -40,6 +41,8 @@ class FFmpeg(object):
         arguments = ['ffmpeg', '-y', '-i', self.file]
         if self.title:
             arguments += ['-metadata', 'title={}'.format(self.title)]
+        if self.coordinates:
+            arguments += ['-filter:v', 'crop={}'.format(self.crop_coordinates)]
         if self.subtitles:
             arguments += ['-copyts',
                           '-vf', 'subtitles={},setpts=PTS-STARTPTS'
@@ -95,6 +98,16 @@ class FFmpeg(object):
         duration = self.string_to_timedelta(value)
         self.end = self.timedelta_to_string(start + duration)
 
+    @property
+    def crop_coordinates(self):
+        """Returns a string with coordinate information presented with a format
+        usable by the crop filter in ffmpeg.
+        """
+        width = self.coordinates[2] - self.coordinates[0]
+        height = self.coordinates[3] - self.coordinates[1]
+        return ('{w}:{h}:{c[0]}:{c[1]}'
+                .format(w=width, h=height, c=self.coordinates))
+
     def encode(self):
         """Performs a two-pass encode. If the class has a specified target
         filesize, performs the encode until either the target filesize has
@@ -144,6 +157,19 @@ class FFmpeg(object):
             old_filesize = filesize
             self.bandwidth *= self.target_filesize / filesize + add_bitrate
         shutil.move(temporary_file, self.out_filename)
+
+    def generate_screenshot(self):
+        """Generates a screenshot of the video at the start position."""
+        kwargs = {
+            'cwd': self._temp_dir.name,
+            'stderr': subprocess.DEVNULL if self.quiet else None
+        }
+        outname = os.path.join(self._temp_dir.name, 'output.jpg')
+        args = ['ffmpeg', '-ss', self.start, '-i', self.file,
+                '-vframes', '1', '-q:v', '2', outname]
+        process = subprocess.Popen(args, **kwargs)
+        process.wait()
+        return outname
 
     def string_to_timedelta(self, time):
         """Converts a timestamp used by FFmpeg to a Python timedelta object."""

@@ -33,6 +33,8 @@ def parse_filesize(filesize):
 @click.command()
 @click.option('--bandwidth', '-b',
               help='Manually set the used bandwidth, e.g. 5M.')
+@click.option('--crop/--no-crop', default=False,
+              help='Crop the output video frame.')
 @click.option('--duration',
               help='Duration for the output video, e.g. 30.000')
 @click.option('--end', '-e',
@@ -53,7 +55,7 @@ def parse_filesize(filesize):
               help='Turn on ffmpeg output.')
 @click.argument('file', required=True, nargs=1,
                 type=click.Path(exists=True, resolve_path=True))
-def cli(bandwidth, duration, end, resolution, sound,
+def cli(bandwidth, crop, duration, end, resolution, sound,
         start, subs, target_size, title, verbose, file):
     """Command-line wrapper for ffmpeg designed to ease converting video files
     to WebM files.
@@ -61,9 +63,13 @@ def cli(bandwidth, duration, end, resolution, sound,
     conversion = FFmpeg(file)
     conversion.start = start
     conversion.end = end
+
+    if crop:
+        from .cropper import VideoCropper
+        cropper = VideoCropper(conversion)
+        cropper.mainloop()
     if duration:
         conversion.duration = duration
-
     if bandwidth:
         conversion.bandwidth = parse_bandwidth(bandwidth)
     if target_size:
