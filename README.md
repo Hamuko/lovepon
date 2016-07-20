@@ -4,7 +4,7 @@ Perfectly executed WebMs.
 
 ## Requirements
 
-lovepon most likely requires Python 3, since I have not bothered to test it with Python 2. Also, as a wrapper for [ffmpeg](https://ffmpeg.org/), it does require ffmpeg and prefarably to be built with the libraries that make it possible to encode VP8 video and Vorbis audio. Burning subtitles onto the videos requires ffmpeg support for subtitle rendering, like building ffmpeg against [libass](https://github.com/libass/libass).
+lovepon most likely requires Python 3, since I have not bothered to test it with Python 2. It requires [click](http://click.pocoo.org/5/). Also, as a wrapper for [ffmpeg](https://ffmpeg.org/), it does require ffmpeg and prefarably to be built with the libraries that make it possible to encode VP8 video and Vorbis audio. Burning subtitles onto the videos requires ffmpeg support for subtitle rendering, like building ffmpeg against [libass](https://github.com/libass/libass). Using the `--crop` option requires [Pillow](http://python-pillow.org/).
 
 ## Installation
 
@@ -23,12 +23,15 @@ Use `lovepon --help` to print the following helpful message.
 
     Options:
       -b, --bandwidth TEXT     Manually set the used bandwidth, e.g. 5M.
+      --crop / --no-crop       Crop the output video frame.
+      --duration TEXT          Duration for the output video, e.g. 30.000
       -e, --end TEXT           End time for the encode, e.g. 01:12:34.555.
       --resolution INTEGER...  Output video width and height in pixels.
       --sound / --no-sound     Output video with sound.
       -s, --start TEXT         Start time for the encode, e.g. 01:09.100.
       --subs / --no-subs       Output video with subtitles.
       -t, --target-size TEXT   Target filesize for the encode.
+      --title TEXT             Add a title to file metadata.
       --verbose                Turn on ffmpeg output.
       --help                   Show this message and exit.
 
