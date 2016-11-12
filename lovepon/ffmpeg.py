@@ -38,7 +38,10 @@ class FFmpeg(object):
     def arguments(self, encode_pass=1):
         """Returns a list of ffmpeg arguments based on the set instance variables.
         """
-        arguments = ['ffmpeg', '-y', '-i', self.file]
+        arguments = ['ffmpeg', '-y']
+        if self.start:
+            arguments += ['-ss', self.start]
+        arguments += ['-i', self.file]
         if self.title:
             arguments += ['-metadata', 'title={}'.format(self.title)]
         if self.coordinates:
@@ -48,10 +51,8 @@ class FFmpeg(object):
                           '-vf', 'subtitles={},setpts=PTS-STARTPTS'
                           .format(quote(self.file))]
         arguments += ['-sn']
-        if self.start:
-            arguments += ['-ss', self.start]
         if self.end:
-            arguments += ['-to', self.end]
+            arguments += ['-t', str(self.duration)]
         if self.resolution:
             arguments += ['-s', 'x'.join([str(x) for x in self.resolution])]
         arguments += ['-c:v', 'libvpx']
