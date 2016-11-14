@@ -57,7 +57,8 @@ class FFmpeg(object):
             arguments += ['-s', 'x'.join([str(x) for x in self.resolution])]
         arguments += ['-c:v', 'libvpx']
         if self.sound:
-            arguments += ['-c:a', 'libvorbis', '-q:a', '4']
+            arguments += ['-af', 'asetpts=PTS-STARTPTS',
+                          '-c:a', 'libvorbis', '-q:a', '4']
         if self.bandwidth:
             arguments += ['-b:v', str(self.bandwidth) + 'M']
         arguments += ['-pass', str(encode_pass)]
