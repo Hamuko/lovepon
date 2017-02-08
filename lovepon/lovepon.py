@@ -39,6 +39,8 @@ def parse_filesize(filesize):
               help='Duration for the output video, e.g. 30.000')
 @click.option('--end', '-e',
               help='End time for the encode, e.g. 01:12:34.555.')
+@click.option('--h264', is_flag=True,
+              help='Use h.264 encoding instead of VP8.')
 @click.option('--resolution', nargs=2, type=int,
               help='Output video width and height in pixels.')
 @click.option('--sound/--no-sound', default=False,
@@ -55,7 +57,7 @@ def parse_filesize(filesize):
               help='Turn on ffmpeg output.')
 @click.argument('file', required=True, nargs=1,
                 type=click.Path(exists=True, resolve_path=True))
-def cli(bandwidth, crop, duration, end, resolution, sound,
+def cli(bandwidth, crop, duration, end, h264, resolution, sound,
         start, subs, target_size, title, verbose, file):
     """Command-line wrapper for ffmpeg designed to ease converting video files
     to WebM files.
@@ -63,6 +65,7 @@ def cli(bandwidth, crop, duration, end, resolution, sound,
     conversion = FFmpeg(file)
     conversion.start = start
     conversion.end = end
+    conversion.h264 = h264
 
     if crop:
         from .cropper import VideoCropper

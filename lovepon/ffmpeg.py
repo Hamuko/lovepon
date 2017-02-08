@@ -19,14 +19,14 @@ class FFmpeg(object):
     def __init__(self, file):
         self.file = file
 
-        filename = os.path.splitext(os.path.split(self.file)[1])[0]
-        self.out_filename = os.path.join(os.getcwd(), filename + '.webm')
+        self.original_filename = os.path.splitext(os.path.split(self.file)[1])[0]
         self._temp_dir = tempfile.TemporaryDirectory()
         self._subs_extracted = False
 
         self.bandwidth = None
         self.coordinates = None
         self.end = None
+        self.h264 = False
         self.quiet = True
         self.resolution = ()
         self.sound = False
@@ -55,16 +55,22 @@ class FFmpeg(object):
             arguments += ['-t', str(self.duration)]
         if self.resolution:
             arguments += ['-s', 'x'.join([str(x) for x in self.resolution])]
-        arguments += ['-c:v', 'libvpx']
+        if self.h264:
+            arguments += ['-c:v', 'libx264', '-preset', 'slower']
+        else:
+            arguments += ['-c:v', 'libvpx']
         if self.sound:
-            arguments += ['-af', 'asetpts=PTS-STARTPTS',
-                          '-c:a', 'libvorbis', '-q:a', '4']
+            arguments += ['-af', 'asetpts=PTS-STARTPTS']
+            if self.h264:
+                arguments += ['-c:a', 'aac', '-q:a', '4']
+            else:
+                arguments += ['-c:a', 'libvorbis', '-q:a', '4']
         if self.bandwidth:
             arguments += ['-b:v', str(self.bandwidth) + 'M']
         arguments += ['-pass', str(encode_pass)]
         if not self.sound:
             arguments += ['-an']
-        arguments += ['output.webm']
+        arguments += [self.filename]
         return arguments
 
     def default_bitrate(self):
@@ -121,7 +127,7 @@ class FFmpeg(object):
         }
         old_bitrate = 0
         old_filesize = 0
-        temporary_file = os.path.join(self._temp_dir.name, 'output.webm')
+        temporary_file = os.path.join(self._temp_dir.name, self.filename)
         if not self.bandwidth:
             self.bandwidth = self.default_bitrate()
         while True:
@@ -160,6 +166,17 @@ class FFmpeg(object):
             self.bandwidth *= self.target_filesize / filesize + add_bitrate
         shutil.move(temporary_file, self.out_filename)
 
+    @property
+    def extension(self):
+        if self.h264:
+            return '.mp4'
+        else:
+            return '.webm'
+
+    @property
+    def filename(self):
+        return 'output{}'.format(self.extension)
+
     def generate_screenshot(self):
         """Generates a screenshot of the video at the start position."""
         kwargs = {
@@ -172,6 +189,11 @@ class FFmpeg(object):
         process = subprocess.Popen(args, **kwargs)
         process.wait()
         return outname
+
+    @property
+    def out_filename(self):
+        name = self.original_filename + self.extension
+        return os.path.join(os.getcwd(), name)
 
     def string_to_timedelta(self, time):
         """Converts a timestamp used by FFmpeg to a Python timedelta object."""
