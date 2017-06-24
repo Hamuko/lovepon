@@ -27,6 +27,8 @@ class FFmpeg(object):
         self.coordinates = None
         self.end = None
         self.h264 = False
+        self.iterations = 0
+        self.output = None
         self.quiet = True
         self.resolution = ()
         self.sound = False
@@ -130,7 +132,9 @@ class FFmpeg(object):
         temporary_file = os.path.join(self._temp_dir.name, self.filename)
         if not self.bandwidth:
             self.bandwidth = self.default_bitrate()
+        iteration = 0
         while True:
+            iteration += 1
             click.echo("Encoding video at {}M."
                        .format(ceil(self.bandwidth * 100) / 100))
             args = self.arguments()
@@ -152,6 +156,9 @@ class FFmpeg(object):
                 break
             if fabs(filesize - old_filesize) < 8 * 1024:
                 click.echo('Bitrate maxed. Stopping.')
+                break
+            if self.iterations and iteration >= self.iterations:
+                # Stop encoding: reached maximum iterations.
                 break
             if old_bitrate and old_filesize:
                 delta_filesize = filesize - old_filesize
@@ -192,7 +199,10 @@ class FFmpeg(object):
 
     @property
     def out_filename(self):
-        name = self.original_filename + self.extension
+        if self.output:
+            name = self.output + self.extension
+        else:
+            name = self.original_filename + self.extension
         return os.path.join(os.getcwd(), name)
 
     def string_to_timedelta(self, time):
