@@ -42,8 +42,11 @@ class FFmpeg(object):
         """
         arguments = ['ffmpeg', '-y']
         if self.start:
-            arguments += ['-ss', self.start]
+            start1, start2 = self.split_start_time()
+            arguments += ['-ss', str(start1)]
         arguments += ['-i', self.file]
+        if self.start:
+            arguments += ['-ss', str(start2)]
         if self.title:
             arguments += ['-metadata', 'title={}'.format(self.title)]
         if self.coordinates:
@@ -106,7 +109,7 @@ class FFmpeg(object):
         else:
             start = timedelta(0)
         duration = self.string_to_timedelta(value)
-        self.end = self.timedelta_to_string(start + duration)
+        self.end = start + duration
 
     @property
     def crop_coordinates(self):
@@ -204,6 +207,12 @@ class FFmpeg(object):
         else:
             name = self.original_filename + self.extension
         return os.path.join(os.getcwd(), name)
+
+    def split_start_time(self):
+        original = self.string_to_timedelta(self.start)
+        start1 = max(original - timedelta(seconds=10), timedelta(0))
+        start2 = original - start1
+        return start1, start2
 
     def string_to_timedelta(self, time):
         """Converts a timestamp used by FFmpeg to a Python timedelta object."""
