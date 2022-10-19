@@ -31,6 +31,10 @@ def parse_filesize(filesize):
 @click.command()
 @click.option("--bandwidth", "-b", help="Manually set the used bandwidth, e.g. 5M.")
 @click.option("--crop/--no-crop", default=False, help="Crop the output video frame.")
+@click.option("--crop-width", type=int, help="Width of the cropped area in pixels.")
+@click.option("--crop-height", type=int, help="Height of the cropped area in pixels.")
+@click.option("--crop-x", type=int, help="Staring X coordinate for the crop.")
+@click.option("--crop-y", type=int, help="Staring Y coordinate for the crop.")
 @click.option("--duration", help="Duration for the output video, e.g. 30.000")
 @click.option("--end", "-e", help="End time for the encode, e.g. 01:12:34.555.")
 @click.option("--h264", is_flag=True, help="Use h.264 encoding instead of VP8.")
@@ -51,6 +55,10 @@ def parse_filesize(filesize):
 def cli(
     bandwidth,
     crop,
+    crop_width,
+    crop_height,
+    crop_x,
+    crop_y,
     duration,
     end,
     h264,
@@ -80,6 +88,13 @@ def cli(
 
         cropper = VideoCropper(conversion)
         cropper.mainloop()
+    if all(x is not None for x in (crop_width, crop_height, crop_x, crop_y)):
+        conversion.coordinates = (
+            crop_x,
+            crop_y,
+            crop_x + crop_width,
+            crop_y + crop_height,
+        )
     if duration:
         conversion.duration = duration
     if bandwidth:
