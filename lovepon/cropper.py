@@ -21,11 +21,11 @@ class VideoCropper(tkinter.Frame):
     def create_widgets(self):
         """Creates the image display widget."""
         w, h = self.screenshot.size
-        canvas_options = {'width': w, 'height': h, 'highlightthickness': 0}
+        canvas_options = {"width": w, "height": h, "highlightthickness": 0}
         self.canvas = tkinter.Canvas(self, **canvas_options)
-        self.canvas.pack(anchor='n', fill='x')
+        self.canvas.pack(anchor="n", fill="x")
         self.canvas.image = ImageTk.PhotoImage(self.screenshot)
-        self.canvas.create_image(0, 0, image=self.canvas.image, anchor='nw')
+        self.canvas.create_image(0, 0, image=self.canvas.image, anchor="nw")
         self.canvas.bind("<ButtonPress-1>", self.on_mouse_down)
         self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
         self.canvas.bind("<ButtonRelease-1>", self.on_mouse_up)
@@ -42,7 +42,7 @@ class VideoCropper(tkinter.Frame):
         self.y_end = event.y
 
         if not self.rect:
-            kwargs = {'outline': '#808080', 'width': 2}
+            kwargs = {"outline": "#808080", "width": 2}
             self.rect = self.canvas.create_rectangle(*self.coords, **kwargs)
 
     def on_mouse_drag(self, event):
@@ -58,8 +58,7 @@ class VideoCropper(tkinter.Frame):
         self.canvas.coords(self.rect, *self.coords)
 
     def on_mouse_up(self, event):
-        """Saves the crop coordinates to the ffmpeg object after dragging ends.
-        """
+        """Saves the crop coordinates to the ffmpeg object after dragging ends."""
         self.video.coordinates = self.coords
 
     def setup_root(self):
