@@ -64,6 +64,8 @@ class FFmpeg(object):
             arguments += ["-s", "x".join([str(x) for x in self.resolution])]
         if self.h264:
             arguments += ["-c:v", "libx264", "-preset", "slower"]
+        elif self.vp9:
+            arguments += ["-c:v", "libvpx-vp9"]
         else:
             arguments += ["-c:v", "libvpx"]
         if self.sound:

@@ -13,7 +13,7 @@ def parse_bandwidth(bandwidth):
 def parse_filesize(filesize):
     """Turn the filesize input string (e.g. 5M) into an integer representing bytes."""
     if filesize.lower() == "4ch":
-        return 3134464
+        return 4183040
     elif filesize[-1].lower() == "g":
         exponent = 3
     elif filesize[-1].lower() == "m":
@@ -49,6 +49,7 @@ def parse_filesize(filesize):
 @click.option("--target-size", "-t", help="Target filesize for the encode.")
 @click.option("--title", help="Add a title to file metadata.")
 @click.option("--verbose", is_flag=True, help="Turn on ffmpeg output.")
+@click.option("--vp9", is_flag=True, help="Use VP9 encoding instead of VP8.")
 @click.argument(
     "file", required=True, nargs=1, type=click.Path(exists=True, resolve_path=True)
 )
@@ -71,6 +72,7 @@ def cli(
     target_size,
     title,
     verbose,
+    vp9,
     file,
 ):
     """Command-line wrapper for ffmpeg designed to ease converting video files
@@ -80,6 +82,7 @@ def cli(
     conversion.start = start
     conversion.end = end
     conversion.h264 = h264
+    conversion.vp9 = vp9
     conversion.iterations = iterations
     conversion.output = output
 
